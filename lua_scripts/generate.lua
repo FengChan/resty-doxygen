@@ -61,22 +61,21 @@ local cmd = string.format([[
     rm -rf %s %s && \
     git clone %s %s && \
     cd %s && \
-    if [ ! -f Doxyfile ]; then \
-        doxygen -g && \
-        sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile && \
-        sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile && \
-        sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile && \
-        sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile && \
-        sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile && \
-        echo "" > footer.html && \
-        echo "body#top > * {display: none !important;}" > custom.css && \
-        sed -i 's|HTML_FOOTER.*|HTML_FOOTER = footer.html|' Doxyfile && \
-        sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile && \
-        sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile && \
-        sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile && \
-        sed -i 's|HTML_EXTRA_STYLESHEET.*|HTML_EXTRA_STYLESHEET = custom.css|' Doxyfile
-        ; \
-    fi && \
+    
+    doxygen -g && \
+    sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile && \
+    sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile && \
+    sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile && \
+    sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile && \
+    sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile && \
+    echo "" > footer.html && \
+    echo "body#top > * {display: none !important;}" > custom.css && \
+    sed -i 's|HTML_FOOTER.*|HTML_FOOTER = footer.html|' Doxyfile && \
+    sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile && \
+    sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile && \
+    sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile && \
+    sed -i 's|HTML_EXTRA_STYLESHEET.*|HTML_EXTRA_STYLESHEET = custom.css|' Doxyfile &&\
+    
     doxygen Doxyfile && \
     mkdir -p %s && \
     cp -r html %s/html
