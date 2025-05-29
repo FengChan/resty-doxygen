@@ -1,0 +1,12 @@
+version: '3'
+services:
+  resty:
+    image: restydoxygen_resty
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./lua_scripts:/opt/lua_scripts
+      - output_data:/opt/output
+
+volumes:
+  output_data:
