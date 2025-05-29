@@ -74,8 +74,7 @@ local cmd = string.format([[
         sed -i 's|HTML_EXTRA_STYLESHEET.*|HTML_EXTRA_STYLESHEET = custom.css|' Doxyfile && \
         sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile && \
         sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile && \
-        sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile && \
-        sed -i '/^HTML_EXTRA_STYLESHEET/d' Doxyfile; \
+        sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile;
     fi && \
     doxygen Doxyfile && \
     mkdir -p %s && \
