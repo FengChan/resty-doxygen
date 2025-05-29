@@ -69,9 +69,7 @@ local cmd = string.format([[
     sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile && \
     sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile && \
     echo "" > footer.html && \
-    echo "body#top > * {display: none !important;}" > custom.css && \
     sed -i 's/HTML_FOOTER.*/HTML_FOOTER = footer.html/' Doxyfile && \
-    sed -i 's/HTML_EXTRA_STYLESHEET.*/HTML_EXTRA_STYLESHEET = custom.css/' Doxyfile && \
     sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile && \
     sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile && \
     sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile && \
