@@ -71,10 +71,13 @@ local cmd = string.format([[
         echo "" > footer.html && \
         echo "body#top > * {display: none !important;}" > custom.css && \
         sed -i 's|HTML_FOOTER.*|HTML_FOOTER = footer.html|' Doxyfile && \
-        sed -i 's|HTML_EXTRA_STYLESHEET.*|HTML_EXTRA_STYLESHEET = custom.css|' Doxyfile && \
         sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile && \
         sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile && \
-        sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile;
+        sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile && \
+        grep -Eq '^\s*#?\s*HTML_EXTRA_STYLESHEET' Doxyfile && \
+            sed -i 's|^\s*#\?\s*HTML_EXTRA_STYLESHEET.*|HTML_EXTRA_STYLESHEET = custom.css|' Doxyfile || \
+            echo 'HTML_EXTRA_STYLESHEET = custom.css' >> Doxyfile
+        ; \
     fi && \
     doxygen Doxyfile && \
     mkdir -p %s && \
