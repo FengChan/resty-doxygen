@@ -75,7 +75,7 @@ local cmd = string.format([[
     sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile && \
     
     doxygen Doxyfile && \
-    rm html/menu.js && \
+    rm -f html/menu.js && \
     mkdir -p %s && \
     cp -r html %s/html
 ]], repopath, outpath, repo, repopath, repopath, outpath, outpath)
