@@ -49,48 +49,38 @@ local outpath  = string.format("%s/%s/%s", outputdir, user, repo_name)
 
 
 -- 打印调试信息（可注释）
-ngx.header.content_type = "application/json"
 ngx.say("Repo: ", repo)
 ngx.say("Repo name: ", repo_name)
 ngx.say("Repopath: ", repopath)
 ngx.say("Outpath: ", outpath)
 ngx.say("rootpath: ", string.format("/files/%s/%s/html/", user, repo_name))
 
-
 -- 构造命令
-local cmd = string.format([[
-    rm -rf %s %s && \
-    rm -rf %s/html && \
-    git clone %s %s && \
-    cd %s && \
-    
-    doxygen -g && \
-    sed -i 's/PROJECT_NAME.*/PROJECT_NAME = "%s"/' Doxyfile && \
-    sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile && \
-    sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile && \
-    sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile && \
-    sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile && \
-    sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile && \
-    echo "" > footer.html && \
-    sed -i 's/HTML_FOOTER.*/HTML_FOOTER = footer.html/' Doxyfile && \
-    sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile && \
-    sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile && \
-    sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile && \
-    
-    doxygen Doxyfile && \
-    rm -f html/menu.js && \
-    mkdir -p %s && \
-    cp -r html %s/html
-]], repopath, outpath, outpath, repo, repopath, repopath, repo_name, outpath, outpath)
+local cmds = {
+    string.format("rm -rf %s %s", repopath, outpath),
+    string.format("rm -rf %s/html", outpath),
+    string.format("git clone %s %s", repo, repopath),
+    string.format("cd %s", repopath),
+    "doxygen -g",
+    string.format([[sed -i "s/^PROJECT_NAME\s*=.*/PROJECT_NAME = \"%s\"/" Doxyfile]], repo_name),
+    "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
+    "sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile",
+    "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
+    "sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile",
+    "sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile",
+    'echo "" > footer.html',
+    "sed -i 's/HTML_FOOTER.*/HTML_FOOTER = footer.html/' Doxyfile",
+    "sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile",
+    "sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile",
+    "sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile",
+    "doxygen Doxyfile",
+    "rm -f html/menu.js",
+    string.format("mkdir -p %s", outpath),
+    string.format("cp -r html %s/html", outpath),
+}
+
+-- 拼接成一条命令，且每条命令用 && 连接，换行提升可读性
+local cmd = table.concat(cmds, " && \\\n")
 
 -- 执行命令
 local code, output = run(cmd)
-
--- 响应
-if code == 0 then
-    ngx.say("Finished successfully:\n\n" .. output)
-else
-    ngx.status = 500
-    ngx.say("Command failed with exit code " .. tostring(code) .. ":\n\n" .. output)
-end
-
