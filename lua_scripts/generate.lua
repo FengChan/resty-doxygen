@@ -49,6 +49,7 @@ local outpath  = string.format("%s/%s/%s", outputdir, user, repo_name)
 
 
 -- 打印调试信息（可注释）
+ngx.header.content_type = "application/json"
 ngx.say("Repo: ", repo)
 ngx.say("Repo name: ", repo_name)
 ngx.say("Repopath: ", repopath)
