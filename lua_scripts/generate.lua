@@ -62,7 +62,7 @@ local cmds = {
     string.format("git clone %s %s", repo, repopath),
     string.format("cd %s", repopath),
     "doxygen -g",
-    "sed -i 's/^PROJECT_NAME.*/PROJECT_NAME = \"gogogo\"/' Doxyfile",
+    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME           = \"asd%s\"/' Doxyfile", repo_name)
     "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
     "sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile",
     "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
@@ -81,6 +81,7 @@ local cmds = {
 
 -- 拼接成一条命令，且每条命令用 && 连接，换行提升可读性
 local cmd = table.concat(cmds, " && \\\n")
+ngx.say("cmd: ", cmd)
 
 -- 执行命令
 local code, output = run(cmd)
