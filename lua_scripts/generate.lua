@@ -65,6 +65,7 @@ local cmd = string.format([[
     cd %s && \
     
     doxygen -g && \
+    sed -i 's/^PROJECT_NAME.*/PROJECT_NAME = "%s"/' Doxyfile && \
     sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile && \
     sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile && \
     sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile && \
@@ -80,7 +81,7 @@ local cmd = string.format([[
     rm -f html/menu.js && \
     mkdir -p %s && \
     cp -r html %s/html
-]], repopath, outpath, outpath, repo, repopath, repopath, outpath, outpath)
+]], repopath, outpath, outpath, repo, repopath, repopath, repo_name, outpath, outpath)
 
 -- 执行命令
 local code, output = run(cmd)
