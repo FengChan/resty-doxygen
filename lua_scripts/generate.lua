@@ -79,7 +79,7 @@ local cmd = string.format([[
     rm -f html/menu.js && \
     mkdir -p %s && \
     cp -r html %s/html
-]], repopath, outpath, repo, repopath, repopath, outpath, outpath)
+]], repopath, outpath, outpath,repo, repopath, repopath, outpath, outpath)
 
 -- 执行命令
 local code, output = run(cmd)
