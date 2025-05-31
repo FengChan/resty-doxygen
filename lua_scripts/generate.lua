@@ -59,6 +59,7 @@ ngx.say("rootpath: ", string.format("/files/%s/%s/html/", user, repo_name))
 -- 构造命令
 local cmd = string.format([[
     rm -rf %s %s && \
+    rm -rf  %s/html \
     git clone %s %s && \
     cd %s && \
     
