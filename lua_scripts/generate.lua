@@ -62,7 +62,7 @@ local cmds = {
     string.format("git clone %s %s", repo, repopath),
     string.format("cd %s", repopath),
     "doxygen -g",
-    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"asd%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1")),
+    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"asd%s\"/' Doxyfile", repo_name),
     "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
     "sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile",
     "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
