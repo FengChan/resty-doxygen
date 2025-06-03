@@ -33,9 +33,11 @@ local function async_task(premature, repo, repo_name, repopath, outpath)
         "sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile",
         "sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile",
         "doxygen Doxyfile",
-        "rm -f html/menu.js",
+        
         string.format("mkdir -p %s", outpath),
         string.format("rm -rf %s/* && cp -r html %s/html", outpath, outpath),
+        string.format("rm -rf %s/html/menu.js", outpath),
+        string.format("python3 /opt/tools/replace_html.py %s/html", outpath),
     }
     local cmd = table.concat(cmds, " && \\\n")
 
