@@ -61,7 +61,7 @@ local cmds = {
     string.format("rm -rf %s/html", outpath),
     string.format("git clone %s %s", repo, repopath),
     string.format("cd %s && doxygen -g", repopath),
-    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"asd%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1")),
+    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1")),
     "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
     "sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile",
     "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
@@ -75,7 +75,7 @@ local cmds = {
     "doxygen Doxyfile",
     "rm -f html/menu.js",
     string.format("mkdir -p %s", outpath),
-    string.format("cp -r html %s/html", outpath),
+    string.format("rm -rf %s && cp -r html %s/html", outpath, outpath),
 }
 
 -- 拼接成一条命令，且每条命令用 && 连接，换行提升可读性
