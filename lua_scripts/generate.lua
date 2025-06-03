@@ -75,7 +75,7 @@ local cmds = {
     "doxygen Doxyfile",
     "rm -f html/menu.js",
     string.format("mkdir -p %s", outpath),
-    string.format("rm -rf %s && cp -r html %s/html", outpath, outpath),
+    string.format("rm -rf %s/* && cp -r html %s/html", outpath, outpath),
 }
 
 -- 拼接成一条命令，且每条命令用 && 连接，换行提升可读性
