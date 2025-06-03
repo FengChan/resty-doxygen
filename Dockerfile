@@ -12,7 +12,7 @@ RUN apk add --no-cache \
     unzip \
     python3 \
     py3-pip \
-    && pip3 install --no-cache-dir beautifulsoup4
+ && pip3 install --no-cache-dir beautifulsoup4
 
 # 创建工作目录并授权
 RUN mkdir -p /opt/workspace && chmod 777 /opt/workspace   
