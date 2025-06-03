@@ -62,7 +62,7 @@ local cmds = {
     string.format("git clone %s %s", repo, repopath),
     string.format("cd %s", repopath),
     "doxygen -g",
-    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"asd%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1"),
+    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"asd%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1")),
     "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
     "sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile",
     "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
@@ -71,7 +71,7 @@ local cmds = {
     'echo "" > footer.html',
     "sed -i 's/HTML_FOOTER.*/HTML_FOOTER = footer.html/' Doxyfile",
     "sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile",
-    "sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile",
+    "sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile",s
     "sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile",
     "doxygen Doxyfile",
     "rm -f html/menu.js",
