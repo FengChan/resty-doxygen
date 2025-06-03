@@ -9,26 +9,43 @@ local function run(cmd)
     return exit_code, output
 end
 
+local function async_task(premature, repo, repo_name, repopath, outpath)
+    if premature then
+        return
+    end
 
+    local cmds = {
+        string.format("rm -rf %s %s", repopath, outpath),
+        string.format("git clone --depth=1 --single-branch %s %s", repo, repopath),
+        string.format("cd %s && doxygen -g", repopath),
+        string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1")),
+        "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
+        "sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile",
+        "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
+        "sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile",
+        "sed -i 's/INPUT_ENCODING.*/INPUT_ENCODING = UTF-8/' Doxyfile",
+        "sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile",
+        "sed -i 's/INPUT.*/INPUT = ./' Doxyfile",
+        "sed -i 's/RECURSIVE.*/RECURSIVE = YES/' Doxyfile",
+        'echo "" > footer.html',
+        "sed -i 's/HTML_FOOTER.*/HTML_FOOTER = footer.html/' Doxyfile",
+        "sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile",
+        "sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile",
+        "sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile",
+        "doxygen Doxyfile",
+        "rm -f html/menu.js",
+        string.format("mkdir -p %s", outpath),
+        string.format("rm -rf %s/* && cp -r html %s/html", outpath, outpath),
+    }
+    local cmd = table.concat(cmds, " && \\\n")
 
-local function parse_git_repo_url(repo_url)
-    -- 去掉协议和域名部分，统一格式为 path1/path2/...
-    local url = repo_url
-    url = url:gsub("^git@[^:/]+:", "")     -- 处理 git@host:xxx/xxx.git
-    url = url:gsub("^ssh://", "")           -- 去掉 ssh://
-    url = url:gsub("^https?://[^/]+/", "") -- 去掉 http(s)://host/
+    local code, output = run(cmd)
 
-    -- 提取第一个路径部分作为 username（组织名）
-    local username = url:match("([^/]+)/") or "default_user"
+    -- 这里可以写日志或者做别的处理，比如把结果写文件、通知等
+    ngx.log(ngx.ERR, "Background task finished with code ", code)
+end
 
-    -- 提取 repo_name，匹配最后一个路径段，去掉可能的 .git 后缀
-    local repo_name = url:match(".*/([^/]+)$") or url
-    repo_name = repo_name:gsub("%.git$", "") -- 去掉 .git
-
-    return username, repo_name
-end 
-
-
+-- 主请求逻辑
 ngx.req.read_body()
 local args = ngx.req.get_uri_args()
 local repo = args.repo
@@ -39,50 +56,31 @@ if not repo then
     return
 end
 
+local function parse_git_repo_url(repo_url)
+    local url = repo_url
+    url = url:gsub("^git@[^:/]+:", "")
+    url = url:gsub("^ssh://", "")
+    url = url:gsub("^https?://[^/]+/", "")
+    local username = url:match("([^/]+)/") or "default_user"
+    local repo_name = url:match(".*/([^/]+)$") or url
+    repo_name = repo_name:gsub("%.git$", "")
+    return username, repo_name
+end
+
+local user, repo_name = parse_git_repo_url(repo)
 local workdir = "/opt/workspace"
 local outputdir = "/opt/output"
-
--- 解析 repo 名称
-local user, repo_name = parse_git_repo_url(repo)
 local repopath = string.format("%s/%s/%s", workdir, user, repo_name)
 local outpath  = string.format("%s/%s/%s", outputdir, user, repo_name)
 
+ngx.say("Task accepted for repo: ", repo)
+ngx.flush(true)  -- 立即发送响应给客户端
 
--- 打印调试信息（可注释）
-ngx.say("Repo: ", repo)
-ngx.say("Repo name: ", repo_name)
-ngx.say("Repopath: ", repopath)
-ngx.say("Outpath: ", outpath)
-ngx.say("rootpath: ", string.format("/files/%s/%s/html/", user, repo_name))
+-- 异步启动后台任务
+local ok, err = ngx.timer.at(0, async_task, repo, repo_name, repopath, outpath)
+if not ok then
+    ngx.log(ngx.ERR, "Failed to create timer: ", err)
+end
 
--- 构造命令
-local cmds = {
-    string.format("rm -rf %s %s", repopath, outpath),
-    string.format("git clone --depth=1 --single-branch %s %s", repo, repopath),
-    string.format("cd %s && doxygen -g", repopath),
-    string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1")),
-    "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
-    "sed -i 's/GENERATE_LATEX.*/GENERATE_LATEX = NO/' Doxyfile",
-    "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
-    "sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile",
-    "sed -i 's/INPUT_ENCODING.*/INPUT_ENCODING = UTF-8/' Doxyfile",
-    "sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile",
-    "sed -i 's/INPUT.*/INPUT = ./' Doxyfile",
-    "sed -i 's/RECURSIVE.*/RECURSIVE = YES/' Doxyfile",
-    'echo "" > footer.html',
-    "sed -i 's/HTML_FOOTER.*/HTML_FOOTER = footer.html/' Doxyfile",
-    "sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile",
-    "sed -i 's/SEARCHENGINE.*/SEARCHENGINE = NO/' Doxyfile",
-    "sed -i 's/DOT_GRAPH_MAX_NODES.*/DOT_GRAPH_MAX_NODES = 100/' Doxyfile",
-    "doxygen Doxyfile",
-    "rm -f html/menu.js",
-    string.format("mkdir -p %s", outpath),
-    string.format("rm -rf %s/* && cp -r html %s/html", outpath, outpath),
-}
-
--- 拼接成一条命令，且每条命令用 && 连接，换行提升可读性
-local cmd = table.concat(cmds, " && \\\n")
-ngx.say("cmd: ", cmd)
-
--- 执行命令
-local code, output = run(cmd)
+-- 主请求结束，不阻塞
+return
