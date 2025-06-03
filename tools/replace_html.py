@@ -85,8 +85,7 @@ def replace_in_html(file_path):
         for el in soup.find_all(tag, attrs=attrs):
             html_content = el.decode_contents()
             if rule["contains"] in html_content:
-                el.clear()
-                el.append(NavigableString(rule["replace_with"]))
+                el.string.replace_with("No longer bold")
                 print(f"[INFO] 替换成功: {rule['contains']} -> {rule['replace_with']} in {file_path}")
                 changed = True
 
