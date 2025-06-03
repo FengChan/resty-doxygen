@@ -67,6 +67,8 @@ local cmds = {
     "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
     "sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile",
     "sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile",
+    "sed -i 's/INPUT.*/INPUT = ./' Doxyfile",
+    "sed -i 's/RECURSIVE.*/RECURSIVE = YES/' Doxyfile",
     'echo "" > footer.html',
     "sed -i 's/HTML_FOOTER.*/HTML_FOOTER = footer.html/' Doxyfile",
     "sed -i 's/CLASS_DIAGRAMS.*/CLASS_DIAGRAMS = YES/' Doxyfile",
