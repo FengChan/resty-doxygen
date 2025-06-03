@@ -22,8 +22,6 @@ RUN mkdir -p /opt/output && chmod 777 /opt/output
 COPY lua_scripts /opt/lua_scripts
 COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
 COPY mime.types /usr/local/openresty/nginx/conf/mime.types
-# 替换脚本复制
-COPY tools/replace_html.py /opt/tools/replace_html.py  
 
 # 设置工作目录
 WORKDIR /opt

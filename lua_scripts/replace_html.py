@@ -64,6 +64,12 @@ def replace_in_html(file_path: str):
     ensure_utf8_meta(soup)
 
     changed = False
+    
+    titlearea = soup.find(id="titlearea")
+    if titlearea:
+        titlearea.decompose()  # 删除该节点及其内容
+        print(f"[删除成功] id=titlearea @ {file_path}")
+        changed = True
 
     for rule in REPLACEMENTS:
         tag = rule.get("tag", True)
