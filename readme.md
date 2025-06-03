@@ -23,3 +23,5 @@ python3 /opt/tools/replace_html.py html/
 cp html /opt/output/mrwid/Snake
 
 
+docker save restydoxygen_resty | gzip > resty-doxygen.tar.gz
+

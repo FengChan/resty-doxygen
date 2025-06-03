@@ -38,6 +38,8 @@ local function async_task(premature, repo, repo_name, repopath, outpath)
         string.format("rm -rf %s/* && cp -r html %s/html", outpath, outpath),
         string.format("rm -rf %s/html/menu.js", outpath),
         string.format("python3 /opt/lua_scripts/replace_html.py %s/html", outpath),
+        string.format("cp -r /opt/lua_scripts/doxygen.css %s/html/doxygen.css", outpath),
+        string.format("cp -r /opt/lua_scripts/detail-bg.png %s/html/detail-bg.png", outpath),
     }
     local cmd = table.concat(cmds, " && \\\n")
 
