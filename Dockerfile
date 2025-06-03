@@ -12,7 +12,7 @@ RUN apk add --no-cache \
     unzip \
     python3 \
     py3-pip \
- && pip3 install --no-cache-dir --break-system-packages beautifulsoup4 
+ && pip3 install --no-cache-dir --break-system-packages beautifulsoup4 chardet
 
 # 创建工作目录并授权
 RUN mkdir -p /opt/workspace && chmod 777 /opt/workspace   
@@ -27,6 +27,6 @@ COPY tools/replace_html.py /opt/tools/replace_html.py
 
 # 设置工作目录
 WORKDIR /opt
-
+ 
 # 启动 OpenResty
 CMD ["openresty", "-g", "daemon off;"]

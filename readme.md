@@ -1,7 +1,4 @@
-git pull && docker-compose build && docker-compose up
-
-
-docker build -t restydoxygen_resty .
+git pull && docker build -t restydoxygen_resty . && docker-compose up -d
 
 git pull 
 docker-compose build 

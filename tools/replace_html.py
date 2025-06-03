@@ -1,5 +1,6 @@
 import os
 import sys
+import chardet
 from bs4 import BeautifulSoup
 
 REPLACEMENTS = [
@@ -52,14 +53,29 @@ REPLACEMENTS = [
     {"tag": "p", "class": "footer", "contains": "Generated on", "replace_with": "生成日期"},
 ]
 
+def detect_encoding(file_path, sample_size=10000):
+    """检测文件编码"""
+    with open(file_path, 'rb') as f:
+        rawdata = f.read(sample_size)
+    result = chardet.detect(rawdata)
+    encoding = result['encoding']
+    if not encoding:
+        encoding = 'utf-8'  # 默认utf-8
+    return encoding
+
 def replace_in_html(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        soup = BeautifulSoup(f, 'html.parser')
+    encoding = detect_encoding(file_path)
+    try:
+        with open(file_path, 'r', encoding=encoding, errors='ignore') as f:
+            soup = BeautifulSoup(f, 'html.parser')
+    except Exception as e:
+        print(f"[ERROR] 读取文件 {file_path} 时出错: {e}")
+        return
 
     changed = False
 
     for rule in REPLACEMENTS:
-        tag = rule.get("tag", "*")
+        tag = rule.get("tag", True)
         attrs = {}
         if "class" in rule:
             attrs["class"] = rule["class"]
@@ -67,13 +83,18 @@ def replace_in_html(file_path):
             attrs["id"] = rule["id"]
 
         for el in soup.find_all(tag, attrs=attrs):
-            if rule["contains"] in el.text:
-                el.string = rule["replace_with"]
+            if rule["contains"].lower() in el.get_text(strip=True).lower():
+                el.clear()
+                el.append(rule["replace_with"])
+                print(f"[UPDATED] {file_path}: 替换<{tag}>.{attrs.get('class', '')}")
                 changed = True
 
     if changed:
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(str(soup))
+        try:
+            with open(file_path, 'w', encoding=encoding, errors='ignore') as f:
+                f.write(str(soup))
+        except Exception as e:
+            print(f"[ERROR] 写入文件 {file_path} 时出错: {e}")
 
 def walk_and_process(root_dir):
     for root, _, files in os.walk(root_dir):
@@ -85,5 +106,4 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python3 replace_html.py <html_root_dir>")
         sys.exit(1)
-
     walk_and_process(sys.argv[1])
