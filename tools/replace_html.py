@@ -83,10 +83,11 @@ def replace_in_html(file_path):
             attrs["id"] = rule["id"]
 
         for el in soup.find_all(tag, attrs=attrs):
-            if rule["contains"].lower() in el.get_text(strip=True).lower():
+            text = el.get_text(strip=True).lower()
+            if rule["contains"].lower() in text:
                 el.clear()
                 el.append(rule["replace_with"])
-                print(f"[UPDATED] {file_path}: 替换<{tag}>.{attrs.get('class', '')}")
+                print(f"[INFO] 替换成功: {rule['contains']} -> {rule['replace_with']} in {file_path}")
                 changed = True
 
     if changed:
