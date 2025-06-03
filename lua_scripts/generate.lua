@@ -58,8 +58,7 @@ ngx.say("rootpath: ", string.format("/files/%s/%s/html/", user, repo_name))
 -- 构造命令
 local cmds = {
     string.format("rm -rf %s %s", repopath, outpath),
-    string.format("rm -rf %s/html", outpath),
-    string.format("git clone %s %s", repo, repopath),
+    string.format("git clone --depth=1 --single-branch %s %s", repo, repopath)
     string.format("cd %s && doxygen -g", repopath),
     string.format("sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"%s\"/' Doxyfile", repo_name:gsub("([\"\\])", "\\%1")),
     "sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile",
