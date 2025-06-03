@@ -1,7 +1,7 @@
 import os
 import sys
 import chardet
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 
 REPLACEMENTS = [
     # 页面说明文字
@@ -19,16 +19,17 @@ REPLACEMENTS = [
     },
 
     # 页面标题
-    {"tag": "div", "class": "title", "contains": " Class List", "replace_with": "类溯源"},
-    {"tag": "div", "class": "title", "contains": " File List", "replace_with": "文件溯源"},
-    {"tag": "h2", "class": "groupheader", "contains": " Class Hierarchy", "replace_with": "类层次结构"},
-    {"tag": "h2", "class": "groupheader", "contains": " Class Members", "replace_with": "类成员"},
+    {"tag": "div", "class": "title", "contains": "Main Page", "replace_with": "主页面"},
+    {"tag": "div", "class": "title", "contains": "Class List", "replace_with": "类溯源"},
+    {"tag": "div", "class": "title", "contains": "File List", "replace_with": "文件溯源"},
+    {"tag": "h2", "class": "groupheader",  "contains": " Class Hierarchy", "replace_with": "类层次结构"},
+    {"tag": "h2", "class": "groupheader",  "contains": " Class Members", "replace_with": "类成员"},
     {"tag": "h2", "class": "groupheader",  "contains": " Namespace List", "replace_with": "命名空间列表"},
     {"tag": "h2", "class": "groupheader",  "contains": " Namespace Members", "replace_with": "命名空间成员"},
     {"tag": "h2", "class": "groupheader",  "contains": " Module List", "replace_with": "模块列表"},
     {"tag": "h2", "class": "groupheader",  "contains": " Module Members", "replace_with": "模块成员"},
     {"tag": "h2", "class": "groupheader",  "contains": " File Members", "replace_with": "文件成员"},
-    {"tag": "h2", "class": "groupheader", "contains": " Functions", "replace_with": "函数"},
+    {"tag": "h2", "class": "groupheader",  "contains": " Functions", "replace_with": "函数"},
     {"tag": "h2", "class": "groupheader",  "contains": " Variables", "replace_with": "变量"},
     {"tag": "h2", "class": "groupheader",  "contains": " Enumerations", "replace_with": "枚举类型"},
     {"tag": "h2", "class": "groupheader",  "contains": " Enumerator", "replace_with": "枚举值"},
@@ -48,8 +49,8 @@ REPLACEMENTS = [
     {"tag": "h2", "class": "groupheader",  "contains": " Function Documentation", "replace_with": "函数文档"},
 
     # 页脚版权等
-    {"tag": "p", "class": "footer", "contains": " Copyright", "replace_with": "版权所有"},
-    {"tag": "p", "class": "footer", "contains": " Generated on", "replace_with": "生成日期"},
+    {"tag": "p", "class": "footer", "contains": "Copyright", "replace_with": "版权所有"},
+    {"tag": "p", "class": "footer", "contains": "Generated on", "replace_with": "生成日期"},
 ]
 
 def detect_encoding(file_path, sample_size=10000):
@@ -84,8 +85,7 @@ def replace_in_html(file_path):
         for el in soup.find_all(tag, attrs=attrs):
             text = el.get_text(strip=True).lower()
             if rule["contains"].lower() in text:
-                el.clear()
-                el.append(rule["replace_with"])
+                el.string = rule['replace_with']
                 print(f"[INFO] 替换成功: {rule['contains']} -> {rule['replace_with']} in {file_path}")
                 changed = True
 
