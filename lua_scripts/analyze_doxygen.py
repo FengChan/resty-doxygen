@@ -8,31 +8,36 @@ def analyze_doxygen_xml(xml_dir: str):
     func_calls = defaultdict(int)
     func_definitions = {}
 
-    for fname in os.listdir(xml_dir):
-        if not fname.endswith(".xml"):
-            continue
+    for root_dir, _, files in os.walk(xml_dir):
+        for fname in files:
+            if not fname.endswith(".xml"):
+                continue
 
-        fpath = os.path.join(xml_dir, fname)
-        try:
-            tree = ET.parse(fpath)
-            root = tree.getroot()
-        except Exception as e:
-            print(f"[WARN] 无法解析 XML 文件: {fpath}, 错误: {e}")
-            continue
+            fpath = os.path.join(root_dir, fname)
+            try:
+                tree = ET.parse(fpath)
+                root = tree.getroot()
+            except Exception as e:
+                print(f"[WARN] 无法解析 XML 文件: {fpath}, 错误: {e}")
+                continue
 
-        for memberdef in root.findall(".//memberdef[@kind='function']"):
-            name = memberdef.findtext('name')
-            if name:
+            for memberdef in root.findall(".//memberdef[@kind='function']"):
+                func_name = memberdef.findtext('name')
+                if not func_name:
+                    continue
+
                 location = memberdef.find('location')
+                file_line = "unknown"
                 if location is not None:
-                    file = location.attrib.get('file', '')
-                    line = location.attrib.get('line', '')
-                    func_definitions[name] = f"{file}:{line}"
+                    file_line = f"{location.attrib.get('file', '')}:{location.attrib.get('line', '')}"
 
-        for call in root.findall(".//call"):
-            callee = call.findtext('callee')
-            if callee:
-                func_calls[callee] += 1
+                func_definitions[func_name] = file_line
+
+                # 统计被调用次数（有多少函数调用了该函数）
+                for refby in memberdef.findall('referencedby'):
+                    caller = refby.text
+                    if caller:
+                        func_calls[func_name] += 1
 
     results = []
     all_funcs = set(func_definitions.keys()) | set(func_calls.keys())
