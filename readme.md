@@ -1,3 +1,27 @@
+### 1. 镜像导入docker
+```
+docker 分支下有镜像文件:  resty-doxygen.tar.gz
+cd 项目根目录
+docker save restydoxygen_resty | gzip > resty-doxygen.tar.gz
+```
+
+### 2. 运行docker
+```
+docker-compose up -d
+```
+
+### 3.更新代码
+```
+关键代码在 lua_scripts 文件夹下，增加了宿主机映射
+
+使用 git pull
+
+更新代码后执行docker-compose up -d
+```
+
+### 4. 其他指令
+```
+
 git pull && docker build -t restydoxygen_resty . && docker-compose up -d
 
 git pull 
@@ -6,22 +30,10 @@ docker-compose up -d
 
 docker exec -it restydoxygen_resty_1 env LANG=C.UTF-8 /bin/bash
 
-
-
-http://xxxxxxxx:8080/output/index.html
-
-
-http://xxxxxxxx:8080/generate?repo=https://github.com/mrwid/Snake.git
+```
 
 
 
-doxygen Doxygen 
-
-python3 /opt/tools/replace_html.py html/
 
 
-cp html /opt/output/mrwid/Snake
-
-
-docker save restydoxygen_resty | gzip > resty-doxygen.tar.gz
 
