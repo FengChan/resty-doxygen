@@ -28,7 +28,7 @@ git pull
 docker-compose build 
 docker-compose up -d
 
-docker exec -it restydoxygen_resty_1 env LANG=C.UTF-8 /bin/bash
+docker exec -it html-nginx env LANG=C.UTF-8 /bin/bash
 
 ```
 

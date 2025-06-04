@@ -24,7 +24,6 @@ local function async_task(premature, repo, repo_name, repopath, outpath)
         "sed -i 's/HAVE_DOT.*/HAVE_DOT = YES/' Doxyfile",
         "sed -i 's/GENERATE_XML.*/GENERATE_XML = YES/' Doxyfile",
         "sed -i 's/CALL_GRAPH.*/CALL_GRAPH = YES/' Doxyfile",
-        "sed -i 's/INPUT_ENCODING.*/INPUT_ENCODING = UTF-8/' Doxyfile",
         "sed -i 's/CALLER_GRAPH.*/CALLER_GRAPH = YES/' Doxyfile",
         "sed -i 's/INPUT.*/INPUT = ./' Doxyfile",
         "sed -i 's/RECURSIVE.*/RECURSIVE = YES/' Doxyfile",
@@ -39,7 +38,7 @@ local function async_task(premature, repo, repo_name, repopath, outpath)
         string.format("rm -rf %s/* && cp -r html %s/html  && cp -r xml %s/xml", outpath, outpath,outpath),
         string.format("echo '' > %s/html/menu.js", outpath),
         string.format("python3 /opt/lua_scripts/replace_html.py %s/html", outpath),
-        string.format("python3 analyze_doxygen_to_json.py %s/xml --json %s/html",outpath ,outpath),
+        string.format("python3 /opt/lua_scripts/analyze_doxygen.py %s/xml --json %s/html",outpath ,outpath),
         string.format("cp -r /opt/lua_scripts/doxygen.css %s/html/doxygen.css", outpath),
         string.format("cp -r /opt/lua_scripts/detail-bg.png %s/html/detail-bg.png", outpath),
     }
