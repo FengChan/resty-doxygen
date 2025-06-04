@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup, NavigableString
 REPLACEMENTS = [
     {"tag": "div", "class": "textblock", "contains": "Here are the classes", "replace_with": "以下是类、结构体、联合体和接口的简要说明："},
     {"tag": "div", "class": "textblock", "contains": "Here is a list of all files", "replace_with": "以下是所有文件的简要说明："},
-    {"tag": "div", "class": "textblock", "contains": "The documentation for this struct was generated from the following file:", "replace_with": "该结构体的文档是根据以下文件生成的："},
+    {"tag": "div", "class": "contents", "contains": "The documentation for this struct was generated from the following file:", "replace_with": "该结构体的文档是根据以下文件生成的："},
 
     {"tag": "div", "class": "title", "contains": "Main Page", "replace_with": "主页面"},
     {"tag": "div", "class": "title", "contains": "Class List", "replace_with": "类溯源"},
