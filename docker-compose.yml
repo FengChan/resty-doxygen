@@ -1,6 +1,7 @@
 version: '3'
 services:
   resty:
+    container_name: html-nginx
     image: restydoxygen_resty
     ports:
       - "8080:8080"
