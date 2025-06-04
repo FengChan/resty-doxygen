@@ -5,15 +5,15 @@ import argparse
 import json
 
 def analyze_doxygen_xml(xml_dir: str):
-    func_calls = defaultdict(int)
-    func_definitions = {}
-    func_files = {}
+    func_info = {}
+    reverse_calls = defaultdict(list)
 
     for fname in os.listdir(xml_dir):
         if not fname.endswith(".xml"):
             continue
 
         fpath = os.path.join(xml_dir, fname)
+
         try:
             tree = ET.parse(fpath)
             root = tree.getroot()
@@ -23,32 +23,56 @@ def analyze_doxygen_xml(xml_dir: str):
 
         for memberdef in root.findall(".//memberdef[@kind='function']"):
             name = memberdef.findtext('name')
-            if name:
-                location = memberdef.find('location')
-                file = location.attrib.get('file', '') if location is not None else ''
-                line = location.attrib.get('line', '') if location is not None else ''
-                func_definitions[name] = f"{file}:{line}"
-                prefix_to_replace = "/opt/output"
-                replacement_prefix = "/files"
-                adjusted_path = fpath.replace(prefix_to_replace, replacement_prefix)
-                func_files[name] = adjusted_path
+            if not name:
+                continue
 
-        for call in root.findall(".//call"):
-            callee = call.findtext('callee')
-            if callee:
-                func_calls[callee] += 1
+            location = memberdef.find('location')
+            decl_file = location.attrib.get('file', '')
+            decl_line = location.attrib.get('line', '')
+            body_file = location.attrib.get('bodyfile', '')
+            body_line = location.attrib.get('bodystart', '')
 
-    results = []
-    all_funcs = set(func_definitions.keys()) | set(func_calls.keys())
-    for func in sorted(all_funcs):
-        results.append({
-            "function": func,
-            "calls": func_calls.get(func, 0),
-            "location": func_definitions.get(func, "unknown"),
-            "xml_file": func_files.get(func, "unknown")
-        })
+            adjusted_path = fpath.replace("/opt/output", "/files")
 
-    return results
+            if name not in func_info:
+                func_info[name] = {
+                    "function": name,
+                    "declaration": f"{decl_file}:{decl_line}" if decl_file else "unknown",
+                    "definition": f"{body_file}:{body_line}" if body_file else "unknown",
+                    "calls": [],
+                    "called_by": [],
+                    "call_count": 0,
+                    "xml_file": adjusted_path
+                }
+
+            for ref in memberdef.findall("references"):
+                callee = ref.text
+                if callee and callee != name:
+                    func_info[name]["calls"].append(callee)
+                    reverse_calls[callee].append(name)
+
+            for ref_by in memberdef.findall("referencedby"):
+                caller = ref_by.text
+                if caller and caller != name:
+                    func_info[name]["called_by"].append(caller)
+                    reverse_calls[name].append(caller)
+
+    for func, callers in reverse_calls.items():
+        if func not in func_info:
+            func_info[func] = {
+                "function": func,
+                "declaration": "unknown",
+                "definition": "unknown",
+                "calls": [],
+                "called_by": list(set(callers)),
+                "call_count": len(callers),
+                "xml_file": "unknown"
+            }
+        else:
+            func_info[func]["call_count"] = len(callers)
+            func_info[func]["called_by"] = list(set(callers))
+
+    return list(func_info.values())
 
 def export_json(results, path):
     with open(path, "w", encoding="utf-8") as f:
