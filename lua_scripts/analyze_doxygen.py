@@ -28,7 +28,10 @@ def analyze_doxygen_xml(xml_dir: str):
                 file = location.attrib.get('file', '') if location is not None else ''
                 line = location.attrib.get('line', '') if location is not None else ''
                 func_definitions[name] = f"{file}:{line}"
-                func_files[name] = fpath  # 保存函数所在 XML 文件路径
+                prefix_to_replace = "/opt/output"
+                replacement_prefix = "/files"
+                adjusted_path = fpath.replace(prefix_to_replace, replacement_prefix)
+                func_files[name] = adjusted_path
 
         for call in root.findall(".//call"):
             callee = call.findtext('callee')
