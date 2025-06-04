@@ -7,37 +7,33 @@ import json
 def analyze_doxygen_xml(xml_dir: str):
     func_calls = defaultdict(int)
     func_definitions = {}
+    func_files = {}
 
-    for root_dir, _, files in os.walk(xml_dir):
-        for fname in files:
-            if not fname.endswith(".xml"):
-                continue
+    for fname in os.listdir(xml_dir):
+        if not fname.endswith(".xml"):
+            continue
 
-            fpath = os.path.join(root_dir, fname)
-            try:
-                tree = ET.parse(fpath)
-                root = tree.getroot()
-            except Exception as e:
-                print(f"[WARN] 无法解析 XML 文件: {fpath}, 错误: {e}")
-                continue
+        fpath = os.path.join(xml_dir, fname)
+        try:
+            tree = ET.parse(fpath)
+            root = tree.getroot()
+        except Exception as e:
+            print(f"[WARN] 无法解析 XML 文件: {fpath}, 错误: {e}")
+            continue
 
-            for memberdef in root.findall(".//memberdef[@kind='function']"):
-                func_name = memberdef.findtext('name')
-                if not func_name:
-                    continue
-
+        for memberdef in root.findall(".//memberdef[@kind='function']"):
+            name = memberdef.findtext('name')
+            if name:
                 location = memberdef.find('location')
-                file_line = "unknown"
-                if location is not None:
-                    file_line = f"{location.attrib.get('file', '')}:{location.attrib.get('line', '')}"
+                file = location.attrib.get('file', '') if location is not None else ''
+                line = location.attrib.get('line', '') if location is not None else ''
+                func_definitions[name] = f"{file}:{line}"
+                func_files[name] = fpath  # 保存函数所在 XML 文件路径
 
-                func_definitions[func_name] = file_line
-
-                # 统计被调用次数（有多少函数调用了该函数）
-                for refby in memberdef.findall('referencedby'):
-                    caller = refby.text
-                    if caller:
-                        func_calls[func_name] += 1
+        for call in root.findall(".//call"):
+            callee = call.findtext('callee')
+            if callee:
+                func_calls[callee] += 1
 
     results = []
     all_funcs = set(func_definitions.keys()) | set(func_calls.keys())
@@ -45,7 +41,8 @@ def analyze_doxygen_xml(xml_dir: str):
         results.append({
             "function": func,
             "calls": func_calls.get(func, 0),
-            "location": func_definitions.get(func, "unknown")
+            "location": func_definitions.get(func, "unknown"),
+            "xml_file": func_files.get(func, "unknown")
         })
 
     return results
