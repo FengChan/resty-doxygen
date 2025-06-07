@@ -23,9 +23,7 @@ function M.run(task)
     build_status:set(status_key, "building", 600)
 
     local cmds = {
-        string.format("rm -rf %s %s", repopath, outpath),
         string.format("git clone --depth=1 --single-branch %s %s", repo, repopath),
-
         string.format("cd %s && doxygen -g", repopath),
         string.format("cd %s && sed -i 's/^[[:space:]]*PROJECT_NAME[[:space:]]*=.*/PROJECT_NAME = \"%s\"/' Doxyfile", repopath, repo_name:gsub("([\"\\])", "\\%1")),
         string.format("cd %s && sed -i 's/EXTRACT_ALL.*/EXTRACT_ALL = YES/' Doxyfile", repopath),
