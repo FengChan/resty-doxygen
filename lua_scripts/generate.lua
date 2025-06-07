@@ -1,40 +1,40 @@
--- 声明共享内存区域（在 nginx.conf 中 http 块加入）：
--- lua_shared_dict build_locks 10m;
+local cjson = require "cjson.safe"
+local queue = require "queue"
+
+local build_locks = ngx.shared.build_locks
+local build_status = ngx.shared.build_status
 
 local function run(cmd)
     local tmp = os.tmpname()
     local full_cmd = cmd .. " > " .. tmp .. " 2>&1"
-    local ok, _, exit_code = os.execute(full_cmd)
+    local ok, _, code = os.execute(full_cmd)
 
     local f = io.open(tmp, "r")
     local output = f and f:read("*a") or ""
     if f then f:close() end
     os.remove(tmp)
+    return code, output
+end
 
-    return exit_code, output
+local function update_status(key, value)
+    build_status:set(key, value, 3600)
 end
 
 local function async_task(premature, args)
     if premature then return end
 
-    local lock = ngx.shared.build_locks
-    local lock_key = "build_lock:" .. args.repopath
+    local lock_key   = "lock:" .. args.repopath
+    local status_key = "status:" .. args.repopath
+    local queue_key  = "queue:" .. args.repopath
 
-    -- 加锁：防止多个任务并发执行
-    local ok, err = lock:add(lock_key, true, 300)  -- 锁 5 分钟
-    if not ok then
-        ngx.log(ngx.ERR, "Another task is running for ", args.repopath)
+    if not build_locks:add(lock_key, true, 300) then
         return
     end
 
+    update_status(status_key, "building")
+
     local ok, err = pcall(function()
-        local repo      = args.repo
-        local repo_name = args.repo_name
-        local repopath  = args.repopath
-        local outpath   = args.outpath
-
-        run(string.format("mkdir -p %s %s", repopath, outpath))
-
+        -- 构建命令（你可以替换成你的构建逻辑）
         local cmds = {
             string.format("rm -rf %s %s", repopath, outpath),
             string.format("git clone --depth=1 --single-branch %s %s", repo, repopath),
@@ -66,64 +66,77 @@ local function async_task(premature, args)
             string.format("cp /opt/lua_scripts/detail-bg.png %s/html/detail-bg.png", outpath),
         }
 
-        local cmd = table.concat(cmds, " && \\\n")
+        local cmd = table.concat(cmds, " && ")
         local code, output = run(cmd)
 
         if code ~= 0 then
-            ngx.log(ngx.ERR, "Command failed with code ", code, "\nCMD:\n", cmd, "\nOutput:\n", output)
+            update_status(status_key, "failed")
+            ngx.log(ngx.ERR, "[BUILD FAIL]", output)
         else
-            ngx.log(ngx.ERR, "Background task finished successfully for repo ", repo)
+            update_status(status_key, "success")
         end
     end)
 
     if not ok then
-        ngx.log(ngx.ERR, "Unhandled Lua error in async_task: ", err)
+        update_status(status_key, "failed")
+        ngx.log(ngx.ERR, "Lua error: ", err)
     end
 
-    -- 最终释放锁
-    lock:delete(lock_key)
+    build_locks:delete(lock_key)
+
+    local next = queue.dequeue(queue_key)
+    if next then
+        ngx.timer.at(0, async_task, next)
+    end
 end
 
--- 主请求入口
+-- 处理请求
 ngx.req.read_body()
 local args = ngx.req.get_uri_args()
 local repo = args.repo
 
 if not repo then
     ngx.status = 400
-    ngx.say("Missing 'repo' parameter. Example: /generate?repo=https://github.com/user/repo.git")
+    ngx.say("Missing 'repo' parameter")
     return
 end
 
 local function parse_git_repo_url(repo_url)
-    local url = repo_url
-    url = url:gsub("^git@[^:/]+:", "")
+    local url = repo_url:gsub("^git@[^:/]+:", "")
     url = url:gsub("^ssh://", "")
     url = url:gsub("^https?://[^/]+/", "")
-    local username = url:match("([^/]+)/") or "default_user"
-    local repo_name = url:match(".*/([^/]+)$") or url
+    local username = url:match("([^/]+)/") or "default"
+    local repo_name = url:match(".*/([^/]+)$") or "repo"
     repo_name = repo_name:gsub("%.git$", "")
     return username, repo_name
 end
 
 local user, repo_name = parse_git_repo_url(repo)
-local workdir = "/opt/workspace"
-local outputdir = "/opt/output"
-local repopath = string.format("%s/%s/%s", workdir, user, repo_name)
-local outpath  = string.format("%s/%s/%s", outputdir, user, repo_name)
+local repopath = string.format("/opt/workspace/%s/%s", user, repo_name)
+local outpath  = string.format("/opt/output/%s/%s", user, repo_name)
 
-ngx.say("Task accepted for repo: ", repo)
-ngx.flush(true)
+local lock_key   = "lock:" .. repopath
+local status_key = "status:" .. repopath
+local queue_key  = "queue:" .. repopath
 
-local ok, err = ngx.timer.at(0, async_task, {
+local task = {
     repo = repo,
     repo_name = repo_name,
     repopath = repopath,
     outpath = outpath
-})
+}
 
-if not ok then
-    ngx.log(ngx.ERR, "Failed to create timer: ", err)
+if build_locks:get(lock_key) then
+    queue.enqueue(queue_key, task)
+    update_status(status_key, "pending")
+    ngx.say("Build task is queued.")
+else
+    update_status(status_key, "pending")
+    local ok, err = ngx.timer.at(0, async_task, task)
+    if ok then
+        ngx.say("Build started.")
+    else
+        update_status(status_key, "failed")
+        ngx.say("Failed to schedule build: ", err)
+    end
 end
-
-return
