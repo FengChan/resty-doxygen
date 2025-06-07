@@ -2,7 +2,7 @@ version: '3'
 services:
   resty:
     container_name: html-nginx
-    image: restydoxygen_resty
+    image: resty-doxygen
     ports:
       - "8081:8080"
     volumes:
