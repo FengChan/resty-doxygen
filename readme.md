@@ -24,6 +24,8 @@ docker-compose up -d
 
 git pull && docker build -t restydoxygen_resty . && docker-compose up -d
 
+docker logs -f --tail 10 html-nginx
+
 git pull 
 docker-compose build 
 docker-compose up -d
