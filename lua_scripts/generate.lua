@@ -23,9 +23,14 @@ end
 local function async_task(premature, args)
     if premature then return end
 
-    local lock_key   = "lock:" .. args.repopath
-    local status_key = "status:" .. args.repopath
-    local queue_key  = "queue:" .. args.repopath
+    local repopath = args.repopath
+    local outpath = args.outpath
+    local repo = args.repo
+    local repo_name = args.repo_name
+
+    local lock_key   = "lock:" .. repopath
+    local status_key = "status:" .. repopath
+    local queue_key  = "queue:" .. repopath
 
     if not build_locks:add(lock_key, true, 300) then
         return
@@ -34,7 +39,6 @@ local function async_task(premature, args)
     update_status(status_key, "building")
 
     local ok, err = pcall(function()
-        -- 构建命令（你可以替换成你的构建逻辑）
         local cmds = {
             string.format("rm -rf %s %s", repopath, outpath),
             string.format("git clone --depth=1 --single-branch %s %s", repo, repopath),
